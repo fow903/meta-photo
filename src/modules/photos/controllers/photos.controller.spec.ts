@@ -58,7 +58,7 @@ describe('PhotosController', () => {
 			const mockFilters: PhotoFilters = {
 				title: 'Sample',
 				albumTitle: 'Album',
-				email: 'test@example.com',
+				userEmail: 'test@example.com',
 			};
 			const limit = 10;
 			const offset = 5;
@@ -80,7 +80,7 @@ describe('PhotosController', () => {
 			const result = await photosController.getPhotos(
 				mockFilters.title,
 				mockFilters.albumTitle,
-				mockFilters.email,
+				mockFilters.userEmail,
 				limit,
 				offset,
 			);

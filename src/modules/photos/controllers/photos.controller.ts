@@ -33,11 +33,11 @@ export class PhotosController {
 	async getPhotos(
 		@Query('title') title: string,
 		@Query('album.title') albumTitle: string,
-		@Query('album.user.email') email: string,
+		@Query('album.user.email') userEmail: string,
 		@Query('limit') limit = 25,
 		@Query('offset') offset = 0,
 	) {
-		const filters: PhotoFilters = { title, albumTitle, email };
+		const filters: PhotoFilters = { title, albumTitle, userEmail };
 		return this.photosService.getPhotos(filters, +limit, +offset);
 	}
 }
