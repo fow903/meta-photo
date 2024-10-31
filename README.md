@@ -107,10 +107,6 @@ GET /externalapi/photos?title=Sunset&album.title=Vacation&limit=10&offset=5
 ]
 ```
 
-It seems there was an issue while trying to update the documentation. Let me add the Swagger endpoint information directly here:
-
----
-
 ### Swagger Documentation
 
 **Endpoint:** `/api`
