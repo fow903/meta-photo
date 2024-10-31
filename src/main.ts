@@ -5,6 +5,8 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import * as express from 'express';
 
+// Check if running locally or in Firebase
+const isLocal = !process.env.FUNCTION_NAME;
 const server = express();
 
 async function createNestServer(expressInstance) {
@@ -32,6 +34,15 @@ async function createNestServer(expressInstance) {
 	await app.init();
 }
 
-createNestServer(server);
+// Create the NestJS server
+createNestServer(server).then(() => {
+	if (isLocal) {
+		// Start the app locally
+		server.listen(3000, () => {
+			console.log('NestJS app is running on http://localhost:3000');
+		});
+	}
+});
 
+// Export the Firebase function for deployment
 export const api = functions.https.onRequest(server);

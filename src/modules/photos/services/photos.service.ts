@@ -83,6 +83,7 @@ export class PhotosService {
 				photos = await this.fetchAllPhotos();
 			}
 
+			// Todo - Refactor this to use a single filter function
 			const filteredPhotos = this.applyFilters(photos, {
 				...filters,
 				email: undefined,
@@ -104,6 +105,7 @@ export class PhotosService {
 				albumsMap,
 			);
 
+			// Only apply email filter after enriching photos
 			const finalFilteredPhotos = this.applyFilters(enrichedPhotos, filters);
 
 			return this.applyPagination(finalFilteredPhotos, limit, offset);
