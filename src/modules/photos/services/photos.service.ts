@@ -1,9 +1,10 @@
 import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { catchError, firstValueFrom } from 'rxjs';
-import { filter, map } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import * as dotenv from 'dotenv';
 import { PhotoFilters } from 'src/modules/photos/interfaces/photo.filters';
+import * as NodeCache from 'node-cache';
 
 dotenv.config();
 
@@ -11,29 +12,45 @@ const BASE_URL = process.env.JSON_PLACEHOLDER;
 
 @Injectable()
 export class PhotosService {
+	private readonly logger = new Logger(PhotosService.name);
+	private cache = new NodeCache({ stdTTL: 3600 }); // Cache with TTL of 1 hour
+
 	constructor(private readonly httpService: HttpService) {}
 
 	async getEnrichedPhoto(id: string) {
 		try {
+			const cachedPhoto = this.cache.get(`photo_${id}`);
+			if (cachedPhoto) {
+				this.logger.debug(`Cache hit for photo ID: ${id}`);
+				return cachedPhoto;
+			}
+
+			this.logger.debug(`Fetching photo ID: ${id}`);
 			const photo = await this.fetchPhoto(id);
 			if (!photo) {
 				throw new Error('Photo not found');
 			}
-			const albumId = photo.albumId;
 
-			const album = await this.fetchAlbum(albumId);
+			this.logger.debug(`Fetching album ID: ${photo.albumId}`);
+			const album = await this.fetchAlbum(photo.albumId);
 			if (!album) {
 				throw new Error('Album not found');
 			}
 
+			this.logger.debug(`Fetching user ID: ${album.userId}`);
 			const user = await this.fetchUser(album.userId);
 			if (!user) {
 				throw new Error('User not found');
 			}
 
-			return this.buildEnrichedPhoto(photo, album, user);
+			const enrichedPhoto = this.buildEnrichedPhoto(photo, album, user);
+			this.cache.set(`photo_${id}`, enrichedPhoto);
+			return enrichedPhoto;
 		} catch (error) {
-			console.error(error);
+			this.logger.error(
+				`Failed to fetch enriched photo: ${error.message}`,
+				error.stack,
+			);
 			throw new Error('Unable to fetch enriched photo data');
 		}
 	}
@@ -44,6 +61,9 @@ export class PhotosService {
 		offset: number = 0,
 	) {
 		try {
+			this.logger.debug(
+				`Fetching photos with filters: ${JSON.stringify(filters)}`,
+			);
 			let albums = [];
 			if (filters['email']) {
 				const users = await this.fetchUsersByEmail(filters['email']);
@@ -88,16 +108,29 @@ export class PhotosService {
 
 			return this.applyPagination(finalFilteredPhotos, limit, offset);
 		} catch (error) {
-			console.error('Failed to fetch and process photos:', error.message);
+			this.logger.error(
+				`Failed to fetch and process photos: ${error.message}`,
+				error.stack,
+			);
 			throw new Error('Failed to fetch and process photos');
 		}
 	}
 
 	private async fetchPhoto(id: string) {
+		const cachedPhoto = this.cache.get(`photo_${id}`);
+		if (cachedPhoto) {
+			this.logger.debug(`Cache hit for photo ID: ${id}`);
+			return cachedPhoto;
+		}
+
 		return firstValueFrom(
 			this.httpService.get(`${BASE_URL}/photos/${id}`).pipe(
 				map((response) => response.data),
 				catchError((error) => {
+					this.logger.error(
+						`Error fetching photo: ${error.message}`,
+						error.stack,
+					);
 					throw new Error(`Error fetching photo: ${error.message}`);
 				}),
 			),
@@ -105,10 +138,20 @@ export class PhotosService {
 	}
 
 	private async fetchAlbum(albumId: number) {
+		const cachedAlbum = this.cache.get(`album_${albumId}`);
+		if (cachedAlbum) {
+			this.logger.debug(`Cache hit for album ID: ${albumId}`);
+			return cachedAlbum;
+		}
+
 		return firstValueFrom(
 			this.httpService.get(`${BASE_URL}/albums/${albumId}`).pipe(
 				map((response) => response.data),
 				catchError((error) => {
+					this.logger.error(
+						`Error fetching album: ${error.message}`,
+						error.stack,
+					);
 					throw new Error(`Error fetching album: ${error.message}`);
 				}),
 			),
@@ -116,10 +159,20 @@ export class PhotosService {
 	}
 
 	private async fetchUser(userId: number) {
+		const cachedUser = this.cache.get(`user_${userId}`);
+		if (cachedUser) {
+			this.logger.debug(`Cache hit for user ID: ${userId}`);
+			return cachedUser;
+		}
+
 		return firstValueFrom(
 			this.httpService.get(`${BASE_URL}/users/${userId}`).pipe(
 				map((response) => response.data),
 				catchError((error) => {
+					this.logger.error(
+						`Error fetching user: ${error.message}`,
+						error.stack,
+					);
 					throw new Error(`Error fetching user: ${error.message}`);
 				}),
 			),
@@ -127,10 +180,23 @@ export class PhotosService {
 	}
 
 	private async fetchUsers() {
+		const cachedUsers = this.cache.get('users');
+		if (cachedUsers) {
+			this.logger.debug('Cache hit for users');
+			return cachedUsers;
+		}
+
 		return firstValueFrom(
 			this.httpService.get(`${BASE_URL}/users`).pipe(
-				map((response) => response.data),
+				map((response) => {
+					this.cache.set('users', response.data);
+					return response.data;
+				}),
 				catchError((error) => {
+					this.logger.error(
+						`Error fetching users: ${error.message}`,
+						error.stack,
+					);
 					throw new Error(`Error fetching users: ${error.message}`);
 				}),
 			),
@@ -142,6 +208,10 @@ export class PhotosService {
 			this.httpService.get(`${BASE_URL}/users`, { params: { email } }).pipe(
 				map((response) => response.data),
 				catchError((error) => {
+					this.logger.error(
+						`Error fetching users by email: ${error.message}`,
+						error.stack,
+					);
 					throw new Error(`Error fetching users by email: ${error.message}`);
 				}),
 			),
@@ -149,42 +219,59 @@ export class PhotosService {
 	}
 
 	private async fetchAlbums(albumTitle: string) {
+		const cachedAlbums = this.cache.get('albums');
+		if (cachedAlbums && Array.isArray(cachedAlbums)) {
+			this.logger.debug('Cache hit for albums');
+			return cachedAlbums.filter((album: any) =>
+				album.title.toLowerCase().includes(albumTitle.toLowerCase()),
+			);
+		}
+
 		const albumsResponse = await firstValueFrom(
 			this.httpService.get(`${BASE_URL}/albums`).pipe(
-				map((response) => response.data),
+				map((response) => {
+					this.cache.set('albums', response.data);
+					return response.data;
+				}),
 				catchError((error) => {
+					this.logger.error(
+						`Error fetching albums: ${error.message}`,
+						error.stack,
+					);
 					throw new Error(`Error fetching albums: ${error.message}`);
 				}),
 			),
 		);
-		return albumsResponse.filter((album) =>
+		return albumsResponse.filter((album: any) =>
 			album.title.toLowerCase().includes(albumTitle.toLowerCase()),
 		);
 	}
 
 	private async fetchAlbumsByIds(albumIds: number[]) {
-		const albumRequests = albumIds.map((albumId) =>
-			firstValueFrom(
-				this.httpService.get(`${BASE_URL}/albums/${albumId}`).pipe(
-					map((response) => response.data),
-					catchError((error) => {
-						throw new Error(
-							`Error fetching album ${albumId}: ${error.message}`,
-						);
-					}),
-				),
-			),
-		);
+		const albumRequests = albumIds.map((albumId) => this.fetchAlbum(albumId));
 		return Promise.all(albumRequests);
 	}
 
 	private async fetchAlbumsByUserId(userId: number) {
+		const cachedAlbums = this.cache.get(`albums_user_${userId}`);
+		if (cachedAlbums) {
+			this.logger.debug(`Cache hit for albums by user ID: ${userId}`);
+			return cachedAlbums;
+		}
+
 		const albumsResponse = await firstValueFrom(
 			this.httpService
 				.get(`${BASE_URL}/albums`, { params: { userId: userId.toString() } })
 				.pipe(
-					map((response) => response.data),
+					map((response) => {
+						this.cache.set(`albums_user_${userId}`, response.data);
+						return response.data;
+					}),
 					catchError((error) => {
+						this.logger.error(
+							`Error fetching albums by user ID: ${error.message}`,
+							error.stack,
+						);
 						throw new Error(
 							`Error fetching albums by user ID: ${error.message}`,
 						);
@@ -196,30 +283,60 @@ export class PhotosService {
 
 	private async fetchPhotosByAlbums(albumIds: number[]) {
 		const photoRequests = albumIds.map((albumId) =>
-			firstValueFrom(
-				this.httpService
-					.get(`${BASE_URL}/photos`, {
-						params: { albumId: albumId.toString() },
-					})
-					.pipe(
-						map((response) => response.data),
-						catchError((error) => {
-							throw new Error(
-								`Error fetching photos for album ${albumId}: ${error.message}`,
-							);
-						}),
-					),
-			),
+			this.fetchPhotosByAlbum(albumId),
 		);
 		const photosArray = await Promise.all(photoRequests);
 		return photosArray.flat();
 	}
 
+	private async fetchPhotosByAlbum(albumId: number) {
+		const cachedPhotos = this.cache.get(`photos_album_${albumId}`);
+		if (cachedPhotos) {
+			this.logger.debug(`Cache hit for photos by album ID: ${albumId}`);
+			return cachedPhotos;
+		}
+
+		return firstValueFrom(
+			this.httpService
+				.get(`${BASE_URL}/photos`, {
+					params: { albumId: albumId.toString() },
+				})
+				.pipe(
+					map((response) => {
+						this.cache.set(`photos_album_${albumId}`, response.data);
+						return response.data;
+					}),
+					catchError((error) => {
+						this.logger.error(
+							`Error fetching photos for album ${albumId}: ${error.message}`,
+							error.stack,
+						);
+						throw new Error(
+							`Error fetching photos for album ${albumId}: ${error.message}`,
+						);
+					}),
+				),
+		);
+	}
+
 	private async fetchAllPhotos() {
+		const cachedPhotos = this.cache.get('all_photos');
+		if (cachedPhotos) {
+			this.logger.debug('Cache hit for all photos');
+			return cachedPhotos;
+		}
+
 		return firstValueFrom(
 			this.httpService.get(`${BASE_URL}/photos`).pipe(
-				map((response) => response.data),
+				map((response) => {
+					this.cache.set('all_photos', response.data);
+					return response.data;
+				}),
 				catchError((error) => {
+					this.logger.error(
+						`Error fetching photos: ${error.message}`,
+						error.stack,
+					);
 					throw new Error(`Error fetching photos: ${error.message}`);
 				}),
 			),
