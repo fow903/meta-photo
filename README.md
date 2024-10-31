@@ -1,99 +1,114 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Photos API Controller Documentation
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+This documentation provides details on the `PhotosController` used for handling requests to manage photo resources in the NestJS application.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Project Setup
 
-## Description
+### Prerequisites
+- **Yarn**: This project uses Yarn as the package manager.
+- **Node.js**: Minimum version required is `18.19`.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+### Installation
+1. Clone the repository:
+   ```sh
+   git clone <repository-url>
+   cd <repository-directory>
+   ```
 
-## Project setup
+2. Install dependencies using Yarn:
+   ```sh
+   yarn install
+   ```
 
-```bash
-$ yarn install
+3. Set up environment variables:
+   Create a `.env` file in the root of your project and add the following:
+   ```env
+   JSON_PLACEHOLDER=https://jsonplaceholder.typicode.com
+   ```
+
+### Running the Application
+To start the application, use the following command:
+```sh
+yarn start
 ```
 
-## Compile and run the project
+## Endpoints
 
-```bash
-# development
-$ yarn run start
+### 1. Get Photo by ID
 
-# watch mode
-$ yarn run start:dev
+**Endpoint:** `/externalapi/photos/:id`
 
-# production mode
-$ yarn run start:prod
+**Method:** `GET`
+
+**Description:** Fetch a specific photo by its unique ID.
+
+**Parameters:**
+- `id` (string): The unique identifier of the photo.
+
+**Response:** Returns the enriched details of the requested photo.
+
+**Example Request:**
+```sh
+GET /externalapi/photos/123
 ```
 
-## Run tests
-
-```bash
-# unit tests
-$ yarn run test
-
-# e2e tests
-$ yarn run test:e2e
-
-# test coverage
-$ yarn run test:cov
+**Example Response:**
+```json
+{
+  "id": "123",
+  "title": "Sunset",
+  "url": "https://example.com/photo123.jpg",
+  "album": {
+    "title": "Vacation",
+    "user": {
+      "email": "user@example.com"
+    }
+  }
+}
 ```
 
-## Deployment
+### 2. Get Photos with Filters
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+**Endpoint:** `/externalapi/photos`
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+**Method:** `GET`
 
-```bash
-$ yarn install -g mau
-$ mau deploy
+**Description:** Fetch a list of photos with optional filters and pagination.
+
+**Query Parameters:**
+- `title` (string, optional): Filter photos by title.
+- `album.title` (string, optional): Filter photos by album title.
+- `album.user.email` (string, optional): Filter photos by the album's user email.
+- `limit` (number, optional, default: `25`): Number of photos to retrieve.
+- `offset` (number, optional, default: `0`): Number of photos to skip before starting to return results.
+
+**Response:** Returns a list of photos matching the given filters and pagination options.
+
+**Example Request:**
+```sh
+GET /externalapi/photos?title=Sunset&album.title=Vacation&limit=10&offset=5
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+**Example Response:**
+```json
+[
+  {
+    "id": "123",
+    "title": "Sunset",
+    "url": "https://example.com/photo123.jpg",
+    "album": {
+      "title": "Vacation",
+      "user": {
+        "email": "user@example.com"
+      }
+    }
+  },
+  ...
+]
+```
 
-## Resources
+## Notes
+- The `PhotosController` relies on the `PhotosService` to perform data retrieval and enrichment.
+- `PhotoFilters` are used to specify filter criteria, allowing users to filter the list of photos by attributes such as `title`, `albumTitle`, or `email`.
+- Pagination can be controlled using the `limit` and `offset` query parameters to retrieve a subset of records.
 
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
