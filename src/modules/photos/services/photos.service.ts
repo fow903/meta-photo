@@ -1,7 +1,7 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { catchError, firstValueFrom } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { filter, map } from 'rxjs/operators';
 import * as dotenv from 'dotenv';
 import { PhotoFilters } from 'src/modules/photos/interfaces/photo.filters';
 
@@ -54,18 +54,39 @@ export class PhotosService {
 				albums = await this.fetchAlbums(filters['albumTitle']);
 			}
 
-			const photos =
-				albums.length > 0
-					? await this.fetchPhotosByAlbums(albums.map((album) => album.id))
-					: await this.fetchAllPhotos();
+			let photos = [];
+			if (albums.length > 0) {
+				photos = await this.fetchPhotosByAlbums(
+					albums.map((album) => album.id),
+				);
+			} else {
+				photos = await this.fetchAllPhotos();
+			}
+
+			const filteredPhotos = this.applyFilters(photos, {
+				...filters,
+				email: undefined,
+			});
+
+			if (albums.length === 0) {
+				const albumIds = [
+					...new Set(filteredPhotos.map((photo) => photo.albumId)),
+				];
+				albums = await this.fetchAlbumsByIds(albumIds);
+			}
+
 			const users = await this.fetchUsers();
 
 			const usersMap = this.buildUsersMap(users);
 			const albumsMap = this.buildAlbumsMap(albums, photos, usersMap);
-			const enrichedPhotos = this.enrichPhotosWithAlbumData(photos, albumsMap);
+			const enrichedPhotos = this.enrichPhotosWithAlbumData(
+				filteredPhotos,
+				albumsMap,
+			);
 
-			const filteredPhotos = this.applyFilters(enrichedPhotos, filters);
-			return this.applyPagination(filteredPhotos, limit, offset);
+			const finalFilteredPhotos = this.applyFilters(enrichedPhotos, filters);
+
+			return this.applyPagination(finalFilteredPhotos, limit, offset);
 		} catch (error) {
 			console.error('Failed to fetch and process photos:', error.message);
 			throw new Error('Failed to fetch and process photos');
@@ -139,6 +160,22 @@ export class PhotosService {
 		return albumsResponse.filter((album) =>
 			album.title.toLowerCase().includes(albumTitle.toLowerCase()),
 		);
+	}
+
+	private async fetchAlbumsByIds(albumIds: number[]) {
+		const albumRequests = albumIds.map((albumId) =>
+			firstValueFrom(
+				this.httpService.get(`${BASE_URL}/albums/${albumId}`).pipe(
+					map((response) => response.data),
+					catchError((error) => {
+						throw new Error(
+							`Error fetching album ${albumId}: ${error.message}`,
+						);
+					}),
+				),
+			),
+		);
+		return Promise.all(albumRequests);
 	}
 
 	private async fetchAlbumsByUserId(userId: number) {
