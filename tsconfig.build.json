@@ -3,5 +3,8 @@
   "exclude": ["node_modules", "test", "dist", "**/*spec.ts"],
   "compilerOptions": {
     "outDir": "./functions/dist",
+    "rootDir": "./src",
+    "module": "commonjs",
+    "target": "es2021"
   }
 }

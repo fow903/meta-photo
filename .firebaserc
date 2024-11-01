@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "meta-photo-be"
-  }
+    "default": "meta-photo-be",
+    "staging": "meta-photo-be"
+  },
+  "targets": {},
+  "etags": {}
 }
