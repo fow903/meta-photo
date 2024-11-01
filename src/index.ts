@@ -1,4 +1,4 @@
-import * as functions from 'firebase-functions';
-import { api } from './main';
+import { onRequest } from 'firebase-functions/v2/https';
+import { server } from './main';
 
-export const server = functions.https.onRequest(api);
+export const api = onRequest(server);

@@ -1,4 +1,4 @@
-import * as functions from 'firebase-functions';
+import { onRequest } from 'firebase-functions/v2/https';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -6,7 +6,7 @@ import { ExpressAdapter } from '@nestjs/platform-express';
 import * as express from 'express';
 
 const isLocal = !process.env.FUNCTION_NAME;
-const server = express();
+const expressServer = express();
 
 async function createNestServer(expressInstance) {
 	const app = await NestFactory.create(
@@ -35,12 +35,12 @@ async function createNestServer(expressInstance) {
 	await app.init();
 }
 
-createNestServer(server).then(() => {
+createNestServer(expressServer).then(() => {
 	if (isLocal) {
-		server.listen(3000, () => {
+		expressServer.listen(3000, () => {
 			console.log('NestJS app is running on http://localhost:3000');
 		});
 	}
 });
 
-export const api = functions.https.onRequest(server);
+export const server = onRequest(expressServer);

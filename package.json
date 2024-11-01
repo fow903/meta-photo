@@ -7,7 +7,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",
-    "build:functions": "tsc -p tsconfig.build.json",
+    "build:functions": "tsc -p tsconfig.build.json && tsc -p functions/tsconfig.functions.json",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
