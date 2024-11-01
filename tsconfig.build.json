@@ -1,20 +1,4 @@
 {
   "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "module": "commonjs",
-    "target": "es2022",
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true
-  },
-  "include": [
-    "src/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "test",
-    "dist",
-    "**/*.spec.ts"
-  ]
+  "exclude": ["node_modules", "test", "dist", "**/*spec.ts"]
 }
