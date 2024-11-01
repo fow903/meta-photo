@@ -110,7 +110,7 @@ export class PhotosService {
 
 			return {
 				count: finalFilteredPhotos.length,
-				data: this.applyPagination(finalFilteredPhotos, limit, offset)
+				data: this.applyPagination(finalFilteredPhotos, limit, offset),
 			};
 		} catch (error) {
 			this.logger.error(
