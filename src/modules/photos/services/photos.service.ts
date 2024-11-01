@@ -108,7 +108,10 @@ export class PhotosService {
 			// Only apply email filter after enriching photos
 			const finalFilteredPhotos = this.applyFilters(enrichedPhotos, filters);
 
-			return this.applyPagination(finalFilteredPhotos, limit, offset);
+			return {
+				count: finalFilteredPhotos.length,
+				data: this.applyPagination(finalFilteredPhotos, limit, offset)
+			};
 		} catch (error) {
 			this.logger.error(
 				`Failed to fetch and process photos: ${error.message}`,
