@@ -23,7 +23,7 @@ This documentation provides details on the `PhotosController` used for handling 
 3. Set up environment variables:
    Create a `.env` file in the root of your project and add the following:
    ```env
-   JSON_PLACEHOLDER=https://jsonplaceholder.typicode.com
+   JSON_PLACEHOLDER_URL=https://jsonplaceholder.typicode.com
    ```
 
 ### Running the Application

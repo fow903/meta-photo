@@ -8,7 +8,7 @@ import * as NodeCache from 'node-cache';
 
 dotenv.config();
 
-const BASE_URL = process.env.JSON_PLACEHOLDER;
+const BASE_URL = process.env.JSON_PLACEHOLDER_URL;
 
 @Injectable()
 export class PhotosService {
