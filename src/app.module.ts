@@ -18,6 +18,6 @@ import { RedirectMiddleware } from "./middlewares/redirect.middleware";
 })
 export class AppModule {
 	configure(consumer: MiddlewareConsumer) {
-		consumer.apply(RedirectMiddleware).forRoutes("*");
+		consumer.apply(RedirectMiddleware).forRoutes("/");
 	}
 }
