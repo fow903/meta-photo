@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PhotosController } from './photos.controller';
 import { PhotosService } from '../services/photos.service';
 import { PhotoFilters } from '../interfaces/photo.filters';
+import { count } from 'console';
 
 describe('PhotosController', () => {
 	let photosController: PhotosController;
@@ -62,19 +63,22 @@ describe('PhotosController', () => {
 			};
 			const limit = 10;
 			const offset = 5;
-			const mockPhotos = [
-				{
-					id: '1',
-					title: 'Sample Photo',
-					url: 'sample-url',
-					thumbnailUrl: 'sample-thumbnail',
-					album: {
+			const mockPhotos = {
+				count: 1,
+				data: [
+					{
 						id: '1',
-						title: 'Sample Album',
-						user: { id: '1', email: 'test@example.com' },
+						title: 'Sample Photo',
+						url: 'sample-url',
+						thumbnailUrl: 'sample-thumbnail',
+						album: {
+							id: '1',
+							title: 'Sample Album',
+							user: { id: '1', email: 'test@example.com' },
+						},
 					},
-				},
-			];
+				]
+			};
 			jest.spyOn(photosService, 'getPhotos').mockResolvedValue(mockPhotos);
 
 			const result = await photosController.getPhotos(
