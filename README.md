@@ -118,3 +118,76 @@ GET /externalapi/photos?title=Sunset&album.title=Vacation&limit=10&offset=5
 - `PhotoFilters` are used to specify filter criteria, allowing users to filter the list of photos by attributes such as `title`, `albumTitle`, or `email`.
 - Pagination can be controlled using the `limit` and `offset` query parameters to retrieve a subset of records.
 
+# Makefile Commands Documentation
+
+This project includes a Makefile to streamline common Docker operations, such as building, running, stopping, and removing Docker containers. Below, you will find the documentation for each command provided by the Makefile.
+
+## Commands Overview
+
+### 1. `build`
+Builds the Docker image for the application using the provided build arguments.
+
+- **Usage**: `make build`
+- **Details**:
+  - Builds a Docker image named as defined by the `IMAGE_NAME` variable.
+  - Includes an argument `JSON_PLACEHOLDER_URL` used during the build process to specify the URL for JSON data.
+- **Docker Command Used**:
+  ```sh
+  docker build --build-arg JSON_PLACEHOLDER_URL="https://jsonplaceholder.typicode.com" -t $(IMAGE_NAME) .
+  ```
+
+### 2. `stop`
+Stops the currently running container.
+
+- **Usage**: `make stop`
+- **Details**:
+  - Attempts to stop the container defined by `CONTAINER_NAME`.
+  - If the container is not running, the command continues without error.
+- **Docker Command Used**:
+  ```sh
+  docker stop $(CONTAINER_NAME) || true
+  ```
+
+### 3. `remove`
+Removes the stopped container.
+
+- **Usage**: `make remove`
+- **Details**:
+  - First calls `stop` to ensure the container is not running.
+  - Removes the container defined by `CONTAINER_NAME`.
+  - If the container does not exist, the command continues without error.
+- **Docker Command Used**:
+  ```sh
+  docker rm $(CONTAINER_NAME) || true
+  ```
+
+### 4. `run`
+Builds the Docker image, removes any existing container, and then runs the container.
+
+- **Usage**: `make run`
+- **Details**:
+  - Calls `build` to build the Docker image.
+  - Calls `remove` to ensure no existing container is running.
+  - Runs a new container in detached mode (`-d`), mapping the port defined by `PORT`.
+- **Docker Command Used**:
+  ```sh
+  docker run -d --name $(CONTAINER_NAME) -p $(PORT):$(PORT) $(IMAGE_NAME)
+  ```
+
+## Variables
+
+- **`APP_NAME`**: The name of the application (used for reference).
+- **`IMAGE_NAME`**: The name/tag of the Docker image that will be created.
+- **`CONTAINER_NAME`**: The name of the Docker container.
+- **`PORT`**: The port number used for running the application.
+
+## Usage
+To run any of these commands, simply use `make` followed by the command name:
+
+```sh
+make build   # Builds the Docker image
+make run     # Builds, removes old container (if any), and runs the Docker container
+make stop    # Stops the running Docker container
+make remove  # Removes the Docker container
+```
+
