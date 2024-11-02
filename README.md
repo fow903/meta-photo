@@ -2,6 +2,18 @@
 
 This documentation provides details on the `PhotosController` used for handling requests to manage photo resources in the NestJS application.
 
+## Tools and Dependencies List
+
+1. **NestJS** (`@nestjs/core`, `@nestjs/common`, `@nestjs/platform-express`, `@nestjs/cli`, `@nestjs/config`, `@nestjs/testing`)
+2. **Axios** (`axios`, `@nestjs/axios`)
+3. **Swagger** (`@nestjs/swagger`, `swagger-ui-express`)
+4. **TypeScript** (`typescript`, `ts-node`, `tsconfig-paths`)
+5. **Linting and Formatting** (`eslint`, `@typescript-eslint/eslint-plugin`, `@typescript-eslint/parser`, `prettier`, `eslint-config-prettier`, `eslint-plugin-prettier`)
+6. **Testing Tools** (`jest`, `ts-jest`, `@types/jest`, `supertest`, `@types/supertest`)
+7. **Node and Express** (`express`, `@types/express`)
+8. **Utility Libraries** (`reflect-metadata`, `node-cache`, `source-map-support`)
+9. **Scripts** (`build`, `start`, `start:dev`, `start:debug`, `start:prod`, `test`, `lint`, `format`)
+
 ## Project Setup
 
 ### Prerequisites
