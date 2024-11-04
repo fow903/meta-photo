@@ -28,13 +28,11 @@ jobs:
       run: yarn build
 
     - name: Decode SSH Key
-      run: |
-        mkdir -p /home/relish/.ssh
-        echo "${{ secrets.VULTR_SERVER_SSH_KEY }}" | base64 --decode > /home/relish/.ssh/id_rsa
+      run: echo "${{ secrets.VULTR_SERVER_SSH_KEY }}" | base64 --decode > /home/relish/.ssh/id_rsa
       shell: bash
 
     - name: Set permissions for SSH key
-      run: chmod 600 /home/relish/.ssh/id_rsa
+      run: chmod 600 ~/.ssh/id_rsa
 
     - name: Deploy to Vultr Server
       uses: appleboy/ssh-action@v0.1.5
