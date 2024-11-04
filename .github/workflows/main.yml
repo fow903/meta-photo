@@ -32,7 +32,7 @@ jobs:
         with:
           host: ${{ secrets.VULTR_SERVER_IP }}
           username: ${{ secrets.VULTR_SERVER_USER }}
-          password: ${{ secrets.VULTR_SERVER_PASSWORD }}
+          key: ${{ secrets.VULTR_SERVER_SSH_KEY }}
           port: 22
           script: |
             cd /home/relish/meta-photo
