@@ -1,0 +1,40 @@
+name: Test, Build, and Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test-build-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Run tests
+        run: yarn test
+
+      - name: Build project
+        run: yarn build
+
+      - name: Deploy to Vultr Server
+        uses: appleboy/ssh-action@v0.1.5
+        with:
+          host: ${{ secrets.VULTR_SERVER_IP }}
+          username: ${{ secrets.VULTR_SERVER_USER }}
+          key: ${{ secrets.VULTR_SERVER_SSH_KEY }}
+          port: 22
+          script: |
+            cd /home/relish/meta-photo
+            git pull origin main
+            make run
