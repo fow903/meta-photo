@@ -27,12 +27,16 @@ jobs:
       - name: Build project
         run: yarn build
 
+      - name: Decode SSH Key
+        run: echo "${{ secrets.VULTR_SERVER_SSH_KEY }}" | base64 --decode > /home/relish/.ssh
+        shell: bash
+
       - name: Deploy to Vultr Server
         uses: appleboy/ssh-action@v0.1.5
         with:
           host: ${{ secrets.VULTR_SERVER_IP }}
           username: ${{ secrets.VULTR_SERVER_USER }}
-          key: ${{ secrets.VULTR_SERVER_SSH_KEY }}
+          key_path: /home/relish/.ssh
           port: 22
           script: |
             cd /home/relish/meta-photo
